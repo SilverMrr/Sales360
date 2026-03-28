@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sales360 - Pipeline</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ── Drag & drop visual feedback ── */
+    .kanban-card {
+      cursor: grab;
+      user-select: none;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    }
+    .kanban-card:active { cursor: grabbing; }
+    .kanban-card.dragging {
+      opacity: 0.4;
+      transform: rotate(2deg) scale(0.97);
+    }
+    .kanban-card.drag-over-card {
+      border-top: 3px solid var(--accent-orange);
+    }
+    .kanban-column.drag-over-col {
+      background: #fff7ed;
+      outline: 2px dashed var(--accent-orange);
+      outline-offset: -4px;
+    }
+    .kanban-drop-placeholder {
+      height: 72px;
+      border: 2px dashed var(--accent-orange);
+      border-radius: var(--radius-md);
+      background: #fff7ed;
+      margin-bottom: 12px;
+      pointer-events: none;
+    }
+    /* Column total value */
+    .kanban-value {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-gray);
+      margin-top: 2px;
+    }
+    /* Drag handle icon */
+    .drag-handle {
+      position: absolute;
+      top: 10px; right: 10px;
+      color: var(--border-light);
+      font-size: 14px;
+      cursor: grab;
+      transition: color 0.2s;
+    }
+    .kanban-card:hover .drag-handle { color: var(--accent-orange); }
+    .kanban-card { position: relative; }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="logo-icon">S3</div>
+        <span>Sales360</span>
+      </div>
+      <nav>
+        <ul class="nav-menu">
+          <li class="nav-item"><a href="index.html" class="nav-link">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            <span>Accueil</span>
+          </a></li>
+          <li class="nav-item"><a href="dashboard.html" class="nav-link">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            <span>Tableau de bord</span>
+          </a></li>
+          <li class="nav-item"><a href="contacts.html" class="nav-link">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            <span>Contacts</span>
+          </a></li>
+          <li class="nav-item"><a href="pipeline.html" class="nav-link active">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            <span>Pipeline</span>
+          </a></li>
+          <li class="nav-item"><a href="telephony.html" class="nav-link">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+            <span>Téléphonie</span>
+          </a></li>
+          <li class="nav-item"><a href="visio.html" class="nav-link">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            <span>Visioconférence</span>
+          </a></li>
+          <li class="nav-item"><a href="recommendations.html" class="nav-link">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+            <span>Recommandations</span>
+            <span class="nav-badge" id="sidebar-badge" style="display:none">0</span>
+          </a></li>
+          <li class="nav-item"><a href="settings.html" class="nav-link">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span>Paramètres</span>
+          </a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1 data-i18n="pipelineTitle">Pipeline commercial</h1>
+        </div>
+        <div class="topbar-right">
+          <div class="lang-switch">
+            <button class="lang-btn active" data-lang="fr">FR</button>
+            <button class="lang-btn" data-lang="en">EN</button>
+          </div>
+          <div class="user-profile">
+            <div class="user-avatar">JD</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <div class="content">
+        <div class="kanban-board" id="kanban-board">
+          <!-- Columns are rendered by JS -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="main.js"></script>
+  <script>
+  // ── Pipeline data ──────────────────────────────────────────
+  const PIPELINE_STORAGE_KEY = "s360_pipeline_cards";
+
+  const DEFAULT_CARDS = [
+    // Prospection
+    { id:"c1", col:"prospection", company:"Entreprise TechCorp",   contact:"Sophie Martin",   value:25000,  badge:"Nouveau",             badgeClass:"badge-info"    },
+    { id:"c2", col:"prospection", company:"Innovation Labs",        contact:"Pierre Dupont",   value:18500,  badge:"Nouveau",             badgeClass:"badge-info"    },
+    { id:"c3", col:"prospection", company:"Digital Solutions",      contact:"Marc Bernard",    value:32000,  badge:"Suivi",               badgeClass:"badge-warning" },
+    { id:"c4", col:"prospection", company:"StartupXYZ",             contact:"Marie Leroy",     value:12000,  badge:"Nouveau",             badgeClass:"badge-info"    },
+    // Qualification
+    { id:"c5", col:"qualification", company:"Enterprise Solutions", contact:"Jean Leblanc",    value:45000,  badge:"En cours",            badgeClass:"badge-warning" },
+    { id:"c6", col:"qualification", company:"Global Tech",          contact:"Claire Dubois",   value:28000,  badge:"En cours",            badgeClass:"badge-warning" },
+    { id:"c7", col:"qualification", company:"Consulting Group",     contact:"Thomas Petit",    value:38500,  badge:"Évaluation",          badgeClass:"badge-info"    },
+    // Proposition
+    { id:"c8", col:"proposition",   company:"Media Corp",           contact:"Julie Martin",    value:52000,  badge:"Proposition envoyée", badgeClass:"badge-warning" },
+    { id:"c9", col:"proposition",   company:"Digital Agency",       contact:"Antoine Roux",    value:29800,  badge:"Révision",            badgeClass:"badge-info"    },
+    // Négociation
+    { id:"c10", col:"negociation",  company:"Finance Solutions",    contact:"Nicolas Blanc",   value:67000,  badge:"Négociation",         badgeClass:"badge-warning" },
+    { id:"c11", col:"negociation",  company:"Healthcare Tech",      contact:"Laura Mercier",   value:41500,  badge:"Contrat",             badgeClass:"badge-warning" },
+    // Conclue
+    { id:"c12", col:"conclue",      company:"Retail Solutions",     contact:"Émilie Durand",   value:55000,  badge:"Gagné",               badgeClass:"badge-success", won:true  },
+    { id:"c13", col:"conclue",      company:"Marketing Pro",        contact:"Olivier Simon",   value:33200,  badge:"Gagné",               badgeClass:"badge-success", won:true  },
+    { id:"c14", col:"conclue",      company:"Logistics Inc",        contact:"Sarah Moreau",    value:0,      badge:"Perdu",               badgeClass:"badge-danger",  lost:true },
+  ];
+
+  const COLUMNS = [
+    { id:"prospection",   label:"Prospection"  },
+    { id:"qualification", label:"Qualification" },
+    { id:"proposition",   label:"Proposition"  },
+    { id:"negociation",   label:"Négociation"  },
+    { id:"conclue",       label:"Conclue"      },
+  ];
+
+  // ── Load / save state ─────────────────────────────────────
+  function loadCards() {
+    try {
+      const stored = JSON.parse(localStorage.getItem(PIPELINE_STORAGE_KEY));
+      return Array.isArray(stored) && stored.length ? stored : JSON.parse(JSON.stringify(DEFAULT_CARDS));
+    } catch { return JSON.parse(JSON.stringify(DEFAULT_CARDS)); }
+  }
+  function saveCards(cards) {
+    localStorage.setItem(PIPELINE_STORAGE_KEY, JSON.stringify(cards));
+  }
+
+  let cards = loadCards();
+
+  // ── Render ────────────────────────────────────────────────
+  function fmtValue(v) {
+    if (!v) return "€0";
+    return "€" + Number(v).toLocaleString("fr-FR");
+  }
+
+  function renderBoard() {
+    const board = document.getElementById("kanban-board");
+    board.innerHTML = "";
+
+    COLUMNS.forEach(col => {
+      const colCards = cards.filter(c => c.col === col.id);
+      const colValue = colCards.reduce((s, c) => s + (c.value || 0), 0);
+
+      const colEl = document.createElement("div");
+      colEl.className = "kanban-column";
+      colEl.dataset.col = col.id;
+
+      colEl.innerHTML = `
+        <div class="kanban-header">
+          <div>
+            <h3 class="kanban-title">${col.label}</h3>
+            <div class="kanban-value">${fmtValue(colValue)}</div>
+          </div>
+          <span class="kanban-count" id="count-${col.id}">${colCards.length}</span>
+        </div>
+        <div class="kanban-cards-zone" data-col="${col.id}"></div>
+      `;
+
+      board.appendChild(colEl);
+
+      const zone = colEl.querySelector(".kanban-cards-zone");
+      colCards.forEach(card => zone.appendChild(buildCard(card)));
+
+      setupColumnDrop(zone);
+    });
+  }
+
+  function buildCard(card) {
+    const el = document.createElement("div");
+    el.className = "kanban-card";
+    el.draggable = true;
+    el.dataset.cardId = card.id;
+
+    const valueColor = card.won ? "#10b981" : card.lost ? "#ef4444" : "var(--accent-orange)";
+    el.innerHTML = `
+      <span class="drag-handle" title="Déplacer">⠿</span>
+      <div class="kanban-card-title">${card.company}</div>
+      <p style="color:var(--text-gray);font-size:14px;margin:8px 0;">Contact : ${card.contact}</p>
+      <div class="kanban-card-meta">
+        <span style="font-weight:600;color:${valueColor};">${fmtValue(card.value)}</span>
+        <span class="badge ${card.badgeClass}">${card.badge}</span>
+      </div>
+    `;
+
+    el.addEventListener("dragstart", onDragStart);
+    el.addEventListener("dragend",   onDragEnd);
+    el.addEventListener("dragover",  onCardDragOver);
+    el.addEventListener("dragleave", onCardDragLeave);
+    el.addEventListener("drop",      onCardDrop);
+
+    return el;
+  }
+
+  // ── Drag & drop logic ─────────────────────────────────────
+  let draggedId  = null;
+  let placeholder = null;
+
+  function onDragStart(e) {
+    draggedId = e.currentTarget.dataset.cardId;
+    e.currentTarget.classList.add("dragging");
+    e.dataTransfer.effectAllowed = "move";
+    // Delay adding placeholder so the drag image renders first
+    setTimeout(() => createPlaceholder(e.currentTarget), 0);
+  }
+
+  function onDragEnd(e) {
+    e.currentTarget.classList.remove("dragging");
+    removePlaceholder();
+    document.querySelectorAll(".kanban-cards-zone").forEach(z => z.closest(".kanban-column").classList.remove("drag-over-col"));
+    document.querySelectorAll(".kanban-card").forEach(c => c.classList.remove("drag-over-card"));
+  }
+
+  function createPlaceholder(afterEl) {
+    placeholder = document.createElement("div");
+    placeholder.className = "kanban-drop-placeholder";
+    afterEl.parentNode.insertBefore(placeholder, afterEl);
+  }
+
+  function removePlaceholder() {
+    if (placeholder && placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
+    placeholder = null;
+  }
+
+  function setupColumnDrop(zone) {
+    zone.addEventListener("dragover", e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      zone.closest(".kanban-column").classList.add("drag-over-col");
+      // Move placeholder to end if hovering empty space
+      if (e.target === zone && placeholder) {
+        zone.appendChild(placeholder);
+      }
+    });
+
+    zone.addEventListener("dragleave", e => {
+      if (!zone.contains(e.relatedTarget)) {
+        zone.closest(".kanban-column").classList.remove("drag-over-col");
+      }
+    });
+
+    zone.addEventListener("drop", e => {
+      e.preventDefault();
+      const targetCol = zone.dataset.col;
+      if (!draggedId) return;
+
+      const colCards = [...zone.querySelectorAll(".kanban-card:not(.dragging)")];
+      let insertBeforeId = null;
+
+      if (placeholder && placeholder.parentNode === zone) {
+        const next = placeholder.nextElementSibling;
+        if (next && next.dataset.cardId) insertBeforeId = next.dataset.cardId;
+      }
+
+      // Update cards array
+      const cardIdx = cards.findIndex(c => c.id === draggedId);
+      if (cardIdx === -1) return;
+      const [movedCard] = cards.splice(cardIdx, 1);
+      movedCard.col = targetCol;
+
+      if (insertBeforeId) {
+        const insertIdx = cards.findIndex(c => c.id === insertBeforeId);
+        cards.splice(insertIdx, 0, movedCard);
+      } else {
+        // append at end of column
+        const lastInCol = cards.reduce((last, c, i) => c.col === targetCol ? i : last, -1);
+        cards.splice(lastInCol + 1, 0, movedCard);
+      }
+
+      saveCards(cards);
+      renderBoard();
+    });
+  }
+
+  function onCardDragOver(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const card = e.currentTarget;
+    if (card.dataset.cardId === draggedId) return;
+    card.classList.add("drag-over-card");
+    // Move placeholder before this card
+    if (placeholder) card.parentNode.insertBefore(placeholder, card);
+  }
+
+  function onCardDragLeave(e) {
+    e.currentTarget.classList.remove("drag-over-card");
+  }
+
+  function onCardDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.remove("drag-over-card");
+    // The zone drop handler will finalize position via placeholder
+  }
+
+  // ── Init ──────────────────────────────────────────────────
+  document.addEventListener("DOMContentLoaded", () => {
+    renderBoard();
+  });
+  </script>
+</body>
+</html>
